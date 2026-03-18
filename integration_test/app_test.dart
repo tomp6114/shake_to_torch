@@ -7,12 +7,12 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('End-to-end load test validating Dashboard wiring', (tester) async {
-    // Start the app natively
-    app.main();
-    // Allow enough time for all asynchronous dependency injections
-    await tester.pumpAndSettle(const Duration(seconds: 2));
+    // Start the app natively and wait for runApp to finish
+    await app.main();
+    
+    // Wait until loading indicator finishes fetching settings
+    await tester.pumpAndSettle();
 
-    // Wait until loading indicator finishes fetching settings from shared_preferences
     expect(find.text('Shake to Torch'), findsOneWidget);
 
     // Initial default layout check

@@ -1,12 +1,11 @@
 import 'dart:async';
-import 'package:sensors_plus/sensors_plus.dart';
+import 'package:flutter/services.dart';
 import '../../domain/entities/shake_sensitivity.dart';
 import '../../domain/repositories/sensor_repository.dart';
 import '../datasources/shake_detector.dart';
 
 class SensorRepositoryImpl implements SensorRepository {
   final ShakeDetector _detector;
-  StreamSubscription<UserAccelerometerEvent>? _subscription;
   final _shakeEventController = StreamController<void>.broadcast();
 
   SensorRepositoryImpl({ShakeDetector? detector})
@@ -15,15 +14,24 @@ class SensorRepositoryImpl implements SensorRepository {
   @override
   Stream<void> get shakeEvents => _shakeEventController.stream;
 
+  static const _channel = MethodChannel('com.tompvarghese.shake_to_torch/torch');
+
   @override
   Future<void> startListening() async {
-    // Left empty internally as BLoC handles starting the MethodChannel Service directly.
-    // The native Android layer entirely executes the algorithm guaranteeing locked-screen operation!
+    try {
+      await _channel.invokeMethod('startService');
+    } catch (e) {
+      // Handle native bridge error safely
+    }
   }
 
   @override
   Future<void> stopListening() async {
-    // Matches identical native delegation.
+    try {
+      await _channel.invokeMethod('stopService');
+    } catch (e) {
+      // Handle native bridge error safely
+    }
   }
 
   @override

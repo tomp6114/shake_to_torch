@@ -40,9 +40,9 @@ class ShakeDetectionService : Service(), SensorEventListener {
         val prefs = getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
         val sensitivityStr = prefs.getString("flutter.sensitivity", "medium") ?: "medium"
         thresholdG = when(sensitivityStr) {
-            "low" -> 20.0
-            "high" -> 10.0
-            else -> 15.0
+            "low" -> 4.5
+            "high" -> 2.0
+            else -> 3.0
         }
 
         cameraManager.registerTorchCallback(object : CameraManager.TorchCallback() {
@@ -84,11 +84,15 @@ class ShakeDetectionService : Service(), SensorEventListener {
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
 
-        startForeground(1, notification)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(1, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        } else {
+            startForeground(1, notification)
+        }
 
         // Attach listener for screen-locked persistence
         accelerometer?.let {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_UI)
+            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
         }
 
         return START_STICKY

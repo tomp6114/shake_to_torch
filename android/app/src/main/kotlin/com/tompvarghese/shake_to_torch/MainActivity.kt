@@ -16,11 +16,11 @@ class MainActivity : FlutterActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as android.os.Vibrator
+        val cameraManager = getSystemService(Context.CAMERA_SERVICE) as? CameraManager
+        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? android.os.Vibrator
         
         try {
-            cameraManager.registerTorchCallback(object : CameraManager.TorchCallback() {
+            cameraManager?.registerTorchCallback(object : CameraManager.TorchCallback() {
                 override fun onTorchModeChanged(cameraId: String, enabled: Boolean) {
                     super.onTorchModeChanged(cameraId, enabled)
                     val firstCamera = cameraManager.cameraIdList.firstOrNull()
@@ -29,10 +29,10 @@ class MainActivity : FlutterActivity() {
                         
                         // Small vibration trigger across all UI / Background interactions
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            vibrator.vibrate(android.os.VibrationEffect.createOneShot(50, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+                            vibrator?.vibrate(android.os.VibrationEffect.createOneShot(50, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
                         } else {
                             @Suppress("DEPRECATION")
-                            vibrator.vibrate(50)
+                            vibrator?.vibrate(50)
                         }
                     }
                 }

@@ -11,7 +11,7 @@ import 'features/shake_to_torch/domain/usecases/update_sensitivity.dart';
 import 'features/shake_to_torch/presentation/bloc/shake_torch_bloc.dart';
 import 'features/shake_to_torch/presentation/pages/dashboard_page.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
 
