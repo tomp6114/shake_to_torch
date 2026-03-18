@@ -1,0 +1,27 @@
+import '../../../../../core/error/failures.dart';
+import '../../../../../core/usecases/usecase.dart';
+import '../../../../../core/utils/result.dart';
+import '../entities/shake_sensitivity.dart';
+import '../repositories/sensor_repository.dart';
+import '../repositories/settings_repository.dart';
+
+class UpdateSensitivityUseCase implements UseCase<void, ShakeSensitivity> {
+  final SettingsRepository settingsRepository;
+  final SensorRepository sensorRepository;
+
+  UpdateSensitivityUseCase(this.settingsRepository, this.sensorRepository);
+
+  @override
+  Future<Result<void, Failure>> call(ShakeSensitivity params) async {
+    final result = await settingsRepository.saveSensitivity(params);
+    
+    return result.fold(
+      (success) {
+        // Also update the active sensor repository's threshold immediately
+        sensorRepository.setSensitivity(params);
+        return const Success(null);
+      },
+      (failure) => Error(failure),
+    );
+  }
+}
