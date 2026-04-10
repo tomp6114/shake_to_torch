@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:flutter/material.dart';
 import 'package:shake_to_torch/main.dart' as app;
 
 void main() {
@@ -8,7 +7,7 @@ void main() {
 
   testWidgets('End-to-end load test validating Dashboard wiring', (tester) async {
     // Start the app natively and wait for runApp to finish
-    await app.main();
+    app.main();
     
     // Wait until loading indicator finishes fetching settings
     await tester.pumpAndSettle();

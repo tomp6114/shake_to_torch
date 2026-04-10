@@ -1,6 +1,6 @@
+import 'package:fpdart/fpdart.dart';
 import '../../../../../core/error/failures.dart';
 import '../../../../../core/usecases/usecase.dart';
-import '../../../../../core/utils/result.dart';
 import '../entities/shake_sensitivity.dart';
 import '../repositories/settings_repository.dart';
 
@@ -10,7 +10,7 @@ class GetSensitivityUseCase implements UseCase<ShakeSensitivity, NoParams> {
   GetSensitivityUseCase(this.repository);
 
   @override
-  Future<Result<ShakeSensitivity, Failure>> call(NoParams params) {
+  Future<Either<Failure, ShakeSensitivity>> call(NoParams params) {
     return repository.getSensitivity();
   }
 }

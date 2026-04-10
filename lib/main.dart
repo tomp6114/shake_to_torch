@@ -1,60 +1,48 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'features/shake_to_torch/data/repositories/sensor_repository_impl.dart';
-import 'features/shake_to_torch/data/repositories/settings_repository_impl.dart';
-import 'features/shake_to_torch/data/repositories/torch_repository_impl.dart';
-import 'features/shake_to_torch/domain/usecases/get_sensitivity.dart';
-import 'features/shake_to_torch/domain/usecases/listen_to_shake.dart';
-import 'features/shake_to_torch/domain/usecases/toggle_torch.dart';
-import 'features/shake_to_torch/domain/usecases/update_sensitivity.dart';
-import 'features/shake_to_torch/presentation/bloc/shake_torch_bloc.dart';
-import 'features/shake_to_torch/presentation/pages/dashboard_page.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:logger/logger.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  final prefs = await SharedPreferences.getInstance();
+import 'core/di/injection.dart';
+import 'core/routing/app_router.dart';
 
-  final settingsRepository = SettingsRepositoryImpl(prefs);
-  final sensorRepository = SensorRepositoryImpl();
-  final torchRepository = TorchRepositoryImpl();
-
-  runApp(MyApp(
-    settingsRepository: settingsRepository,
-    sensorRepository: sensorRepository,
-    torchRepository: torchRepository,
-  ));
+void main() async {
+  unawaited(runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await dotenv.load(fileName: ".env");
+    await initDI();
+    
+    final dsn = dotenv.env['SENTRY_DSN'];
+    if (dsn != null && dsn.isNotEmpty) {
+      await SentryFlutter.init(
+        (options) {
+          options.dsn = dsn;
+          options.tracesSampleRate = 1.0;
+        },
+        appRunner: () => runApp(const MyApp()),
+      );
+    } else {
+      runApp(const MyApp());
+    }
+  }, (error, stack) async {
+    final log = Logger();
+    log.e('Uncaught Zone Error', error: error, stackTrace: stack);
+    await Sentry.captureException(error, stackTrace: stack);
+  }));
 }
 
 class MyApp extends StatelessWidget {
-  final SettingsRepositoryImpl settingsRepository;
-  final SensorRepositoryImpl sensorRepository;
-  final TorchRepositoryImpl torchRepository;
-
-  const MyApp({
-    super.key,
-    required this.settingsRepository,
-    required this.sensorRepository,
-    required this.torchRepository,
-  });
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Shake to Torch',
       theme: ThemeData.dark(useMaterial3: true).copyWith(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.amber, brightness: Brightness.dark),
       ),
-      home: BlocProvider(
-        create: (_) => ShakeTorchBloc(
-          getSensitivity: GetSensitivityUseCase(settingsRepository),
-          updateSensitivity: UpdateSensitivityUseCase(settingsRepository, sensorRepository),
-          listenToShake: ListenToShakeUseCase(sensorRepository),
-          toggleTorch: ToggleTorchUseCase(torchRepository),
-          torchRepository: torchRepository,
-        ),
-        child: const DashboardPage(),
-      ),
+      routerConfig: AppRouter.router,
     );
   }
 }

@@ -1,46 +1,17 @@
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/shake_sensitivity.dart';
 
-class ShakeTorchState extends Equatable {
-  final bool isServiceActive;
-  final bool isTorchOn;
-  final ShakeSensitivity sensitivity;
-  final String? errorMessage;
-  final bool isLoading;
+part 'shake_torch_state.freezed.dart';
 
-  const ShakeTorchState({
-    required this.isServiceActive,
-    required this.isTorchOn,
-    required this.sensitivity,
-    this.errorMessage,
-    required this.isLoading,
-  });
-
-  factory ShakeTorchState.initial() {
-    return const ShakeTorchState(
-      isServiceActive: false,
-      isTorchOn: false,
-      sensitivity: ShakeSensitivity.medium,
-      isLoading: true,
-    );
-  }
-
-  ShakeTorchState copyWith({
-    bool? isServiceActive,
-    bool? isTorchOn,
-    ShakeSensitivity? sensitivity,
+@freezed
+class ShakeTorchState with _$ShakeTorchState {
+  const factory ShakeTorchState({
+    @Default(ShakeSensitivity.medium) ShakeSensitivity sensitivity,
+    @Default(false) bool isTorchOn,
+    @Default(false) bool isServiceActive,
+    @Default(false) bool isLoading,
     String? errorMessage,
-    bool? isLoading,
-  }) {
-    return ShakeTorchState(
-      isServiceActive: isServiceActive ?? this.isServiceActive,
-      isTorchOn: isTorchOn ?? this.isTorchOn,
-      sensitivity: sensitivity ?? this.sensitivity,
-      errorMessage: errorMessage, // Reset error message if not provided explicitly? Or keep it? Usually reset to null.
-      isLoading: isLoading ?? this.isLoading,
-    );
-  }
+  }) = _ShakeTorchState;
 
-  @override
-  List<Object?> get props => [isServiceActive, isTorchOn, sensitivity, errorMessage, isLoading];
+  factory ShakeTorchState.initial() => const ShakeTorchState();
 }

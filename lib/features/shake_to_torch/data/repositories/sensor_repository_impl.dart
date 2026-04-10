@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
+import 'package:logger/logger.dart';
+import '../../../../core/error/exceptions.dart';
 import '../../domain/entities/shake_sensitivity.dart';
 import '../../domain/repositories/sensor_repository.dart';
 import '../datasources/shake_detector.dart';
 
 class SensorRepositoryImpl implements SensorRepository {
   final ShakeDetector _detector;
+  // ignore: close_sinks
   final _shakeEventController = StreamController<void>.broadcast();
 
   SensorRepositoryImpl({ShakeDetector? detector})
@@ -21,7 +24,9 @@ class SensorRepositoryImpl implements SensorRepository {
     try {
       await _channel.invokeMethod('startService');
     } catch (e) {
-      // Handle native bridge error safely
+      final log = Logger();
+      log.e('Failed to start native sensor bridge', error: e);
+      throw NativeSensorException('Failed to start sensor: $e');
     }
   }
 
@@ -30,7 +35,9 @@ class SensorRepositoryImpl implements SensorRepository {
     try {
       await _channel.invokeMethod('stopService');
     } catch (e) {
-      // Handle native bridge error safely
+      final log = Logger();
+      log.e('Failed to stop native sensor bridge', error: e);
+      throw NativeSensorException('Failed to stop sensor: $e');
     }
   }
 
