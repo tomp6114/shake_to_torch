@@ -18,7 +18,7 @@ class UpdateSensitivityUseCase implements UseCase<void, ShakeSensitivity> {
     return result.fold(
       (failure) => Left(failure),
       (_) {
-        // Also update the active sensor repository's threshold immediately
+        // Immediate update avoids requiring a sensor service restart
         sensorRepository.setSensitivity(params);
         return const Right(null);
       },

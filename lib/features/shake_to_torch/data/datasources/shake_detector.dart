@@ -29,7 +29,7 @@ class ShakeDetector {
     if (gy.abs() > maxG) { maxG = gy.abs(); dominantAxis = 1; isPositive = gy > 0; }
     if (gz.abs() > maxG) { maxG = gz.abs(); dominantAxis = 2; isPositive = gz > 0; }
     
-    // If we exceed 500ms since the last strong movement, reset the back-and-forth state.
+    // Timeout prevents two unrelated shakes spaced far apart from triggering the torch
     if (_activeAxis != -1 && timestampMs - _lastTime > 500) {
       _waitForNegative = false;
       _waitForPositive = false;
@@ -38,7 +38,7 @@ class ShakeDetector {
     
     if (maxG > _sensitivity.thresholdG) {
       if (_activeAxis == -1) {
-        // This is the first strong movement initializing the back-and-forth expectation
+        // Registers the first half of the sequence and locks the axis to prevent diagonal misfires
         _activeAxis = dominantAxis;
         _lastTime = timestampMs;
         if (isPositive) {
@@ -47,7 +47,7 @@ class ShakeDetector {
           _waitForPositive = true;
         }
       } else if (_activeAxis == dominantAxis) {
-        // We are on the same active axis. Check if we moved in the opposite direction.
+        // Only counter-movements on the established axis complete the sequence
         if ((isPositive && _waitForPositive) || (!isPositive && _waitForNegative)) {
           _activeAxis = -1;
           _waitForNegative = false;
