@@ -40,6 +40,6 @@ void main() {
     
     expect(find.text('Shake Detection Active'), findsOneWidget);
     expect(find.byType(SwitchListTile), findsOneWidget);
-    expect(find.text('High'), findsOneWidget); // Sensitivity button
+    expect(find.text('High'), findsOneWidget);
   });
 }

@@ -17,7 +17,6 @@ class ShakeDetector {
   /// Returns [true] if a complete back-and-forth shake was detected 
   /// within the configured window frame (500ms).
   bool processEvent(double x, double y, double z, int timestampMs) {
-    // Convert acceleration from m/s^2 to G-force
     final gx = x / 9.80665;
     final gy = y / 9.80665;
     final gz = z / 9.80665;
@@ -26,7 +25,6 @@ class ShakeDetector {
     int dominantAxis = -1;
     bool isPositive = false;
     
-    // Find the axis with the strongest acceleration
     if (gx.abs() > maxG) { maxG = gx.abs(); dominantAxis = 0; isPositive = gx > 0; }
     if (gy.abs() > maxG) { maxG = gy.abs(); dominantAxis = 1; isPositive = gy > 0; }
     if (gz.abs() > maxG) { maxG = gz.abs(); dominantAxis = 2; isPositive = gz > 0; }
@@ -38,7 +36,6 @@ class ShakeDetector {
       _activeAxis = -1;
     }
     
-    // Check if we hit the requested G threshold
     if (maxG > _sensitivity.thresholdG) {
       if (_activeAxis == -1) {
         // This is the first strong movement initializing the back-and-forth expectation
@@ -52,7 +49,6 @@ class ShakeDetector {
       } else if (_activeAxis == dominantAxis) {
         // We are on the same active axis. Check if we moved in the opposite direction.
         if ((isPositive && _waitForPositive) || (!isPositive && _waitForNegative)) {
-          // Completed a distinct back-and-forth movement within 500ms threshold!
           _activeAxis = -1;
           _waitForNegative = false;
           _waitForPositive = false;
