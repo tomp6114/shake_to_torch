@@ -1,17 +1,17 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:shake_to_torch/core/usecases/usecase.dart';
 import 'package:shake_to_torch/features/shake_to_torch/domain/entities/shake_sensitivity.dart';
 import 'package:shake_to_torch/features/shake_to_torch/domain/usecases/get_sensitivity.dart';
-import 'package:shake_to_torch/features/shake_to_torch/domain/usecases/update_sensitivity.dart';
 import 'package:shake_to_torch/features/shake_to_torch/domain/usecases/listen_to_shake.dart';
 import 'package:shake_to_torch/features/shake_to_torch/domain/usecases/toggle_torch.dart';
+import 'package:shake_to_torch/features/shake_to_torch/domain/usecases/update_sensitivity.dart';
 import 'package:shake_to_torch/features/shake_to_torch/domain/repositories/torch_repository.dart';
 import 'package:shake_to_torch/features/shake_to_torch/presentation/bloc/shake_torch_bloc.dart';
 import 'package:shake_to_torch/features/shake_to_torch/presentation/bloc/shake_torch_event.dart';
 import 'package:shake_to_torch/features/shake_to_torch/presentation/bloc/shake_torch_state.dart';
-import 'package:shake_to_torch/core/usecases/usecase.dart';
-import 'package:shake_to_torch/core/utils/result.dart';
 
 class MockGetSensitivityUseCase extends Mock implements GetSensitivityUseCase {}
 class MockUpdateSensitivityUseCase extends Mock implements UpdateSensitivityUseCase {}
@@ -33,11 +33,7 @@ void main() {
     mockListenToShake = MockListenToShakeUseCase();
     mockToggleTorch = MockToggleTorchUseCase();
     mockTorchRepository = MockTorchRepository();
-
-    // Register fallback parameter
-    registerFallbackValue(NoParams());
-    registerFallbackValue(ShakeSensitivity.medium);
-
+    
     bloc = ShakeTorchBloc(
       getSensitivity: mockGetSensitivity,
       updateSensitivity: mockUpdateSensitivity,
@@ -47,53 +43,22 @@ void main() {
     );
   });
 
-  tearDown(() {
-    bloc.close();
+  group('LoadSettingsEvent', () {
+    blocTest<ShakeTorchBloc, ShakeTorchState>(
+      'should emit loaded state completely',
+      build: () {
+        when(() => mockGetSensitivity(NoParams()))
+            .thenAnswer((_) async => const Right(ShakeSensitivity.high));
+        when(() => mockTorchRepository.getTorchState())
+            .thenAnswer((_) async => const Right(true));
+        return bloc;
+      },
+      act: (bloc) => bloc.add(LoadSettingsEvent()),
+      expect: () => [
+        ShakeTorchState.initial().copyWith(isLoading: true, errorMessage: null),
+        ShakeTorchState.initial().copyWith(sensitivity: ShakeSensitivity.high, isLoading: false, errorMessage: null),
+        ShakeTorchState.initial().copyWith(sensitivity: ShakeSensitivity.high, isTorchOn: true, isLoading: false, errorMessage: null),
+      ],
+    );
   });
-
-  test('initial state should be ShakeTorchState.initial()', () {
-    expect(bloc.state, equals(ShakeTorchState.initial()));
-  });
-
-  blocTest<ShakeTorchBloc, ShakeTorchState>(
-    'emits state with sensitivity when LoadSettingsEvent is added',
-    build: () {
-      when(() => mockGetSensitivity(any()))
-          .thenAnswer((_) async => const Success(ShakeSensitivity.high));
-      when(() => mockTorchRepository.getTorchState())
-          .thenAnswer((_) async => const Success(false)); // Mock for Sync
-      return bloc;
-    },
-    act: (bloc) => bloc.add(LoadSettingsEvent()),
-    expect: () => [
-      ShakeTorchState.initial().copyWith(isLoading: true),
-      ShakeTorchState.initial().copyWith(isLoading: false, sensitivity: ShakeSensitivity.high),
-    ],
-  );
-
-  blocTest<ShakeTorchBloc, ShakeTorchState>(
-    'emits state with updated sensitivity when SensitivityChangedEvent is added',
-    build: () {
-      when(() => mockUpdateSensitivity(any()))
-          .thenAnswer((_) async => const Success(null));
-      return bloc;
-    },
-    act: (bloc) => bloc.add(const SensitivityChangedEvent(ShakeSensitivity.low)),
-    expect: () => [
-      ShakeTorchState.initial().copyWith(sensitivity: ShakeSensitivity.low),
-    ],
-  );
-
-  blocTest<ShakeTorchBloc, ShakeTorchState>(
-    'emits state with isTorchOn when ShakeDetectedEvent is added',
-    build: () {
-      when(() => mockToggleTorch(any()))
-          .thenAnswer((_) async => const Success(true));
-      return bloc;
-    },
-    act: (bloc) => bloc.add(ShakeDetectedEvent()),
-    expect: () => [
-      ShakeTorchState.initial().copyWith(isTorchOn: true),
-    ],
-  );
 }

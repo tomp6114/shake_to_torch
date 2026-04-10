@@ -1,6 +1,6 @@
+import 'package:fpdart/fpdart.dart';
 import '../../../../../core/error/failures.dart';
 import '../../../../../core/usecases/usecase.dart';
-import '../../../../../core/utils/result.dart';
 import '../repositories/torch_repository.dart';
 
 class ToggleTorchUseCase implements UseCase<bool, NoParams> {
@@ -9,7 +9,7 @@ class ToggleTorchUseCase implements UseCase<bool, NoParams> {
   ToggleTorchUseCase(this.repository);
 
   @override
-  Future<Result<bool, Failure>> call(NoParams params) {
+  Future<Either<Failure, bool>> call(NoParams params) {
     return repository.toggleTorch();
   }
 }

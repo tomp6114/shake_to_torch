@@ -17,7 +17,6 @@ class ShakeDetector {
   /// Returns [true] if a complete back-and-forth shake was detected 
   /// within the configured window frame (500ms).
   bool processEvent(double x, double y, double z, int timestampMs) {
-    // Convert acceleration from m/s^2 to G-force
     final gx = x / 9.80665;
     final gy = y / 9.80665;
     final gz = z / 9.80665;
@@ -26,22 +25,20 @@ class ShakeDetector {
     int dominantAxis = -1;
     bool isPositive = false;
     
-    // Find the axis with the strongest acceleration
     if (gx.abs() > maxG) { maxG = gx.abs(); dominantAxis = 0; isPositive = gx > 0; }
     if (gy.abs() > maxG) { maxG = gy.abs(); dominantAxis = 1; isPositive = gy > 0; }
     if (gz.abs() > maxG) { maxG = gz.abs(); dominantAxis = 2; isPositive = gz > 0; }
     
-    // If we exceed 500ms since the last strong movement, reset the back-and-forth state.
+    // Timeout prevents two unrelated shakes spaced far apart from triggering the torch
     if (_activeAxis != -1 && timestampMs - _lastTime > 500) {
       _waitForNegative = false;
       _waitForPositive = false;
       _activeAxis = -1;
     }
     
-    // Check if we hit the requested G threshold
     if (maxG > _sensitivity.thresholdG) {
       if (_activeAxis == -1) {
-        // This is the first strong movement initializing the back-and-forth expectation
+        // Registers the first half of the sequence and locks the axis to prevent diagonal misfires
         _activeAxis = dominantAxis;
         _lastTime = timestampMs;
         if (isPositive) {
@@ -50,9 +47,8 @@ class ShakeDetector {
           _waitForPositive = true;
         }
       } else if (_activeAxis == dominantAxis) {
-        // We are on the same active axis. Check if we moved in the opposite direction.
+        // Only counter-movements on the established axis complete the sequence
         if ((isPositive && _waitForPositive) || (!isPositive && _waitForNegative)) {
-          // Completed a distinct back-and-forth movement within 500ms threshold!
           _activeAxis = -1;
           _waitForNegative = false;
           _waitForPositive = false;

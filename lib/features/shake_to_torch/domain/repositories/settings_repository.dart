@@ -1,8 +1,8 @@
+import 'package:fpdart/fpdart.dart';
 import '../../../../../core/error/failures.dart';
-import '../../../../../core/utils/result.dart';
 import '../entities/shake_sensitivity.dart';
 
 abstract class SettingsRepository {
-  Future<Result<void, Failure>> saveSensitivity(ShakeSensitivity sensitivity);
-  Future<Result<ShakeSensitivity, Failure>> getSensitivity();
+  Future<Either<Failure, void>> saveSensitivity(ShakeSensitivity sensitivity);
+  Future<Either<Failure, ShakeSensitivity>> getSensitivity();
 }

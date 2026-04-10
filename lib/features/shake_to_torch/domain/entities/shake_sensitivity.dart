@@ -1,7 +1,10 @@
 enum ShakeSensitivity {
-  high(2.0),    // Highly sensitive, small shakes detect
-  medium(3.0),  // Normal sensitivity
-  low(4.5);     // Requires significant force
+  /// Low threshold; detects minor wrist flicks
+  high(2.0),
+  /// Balanced threshold for intentional shakes
+  medium(3.0),
+  /// High threshold requiring forceful movement
+  low(4.5);
 
   final double thresholdG;
 

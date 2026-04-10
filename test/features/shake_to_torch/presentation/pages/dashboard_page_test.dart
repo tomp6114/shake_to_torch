@@ -27,7 +27,7 @@ void main() {
   }
 
   testWidgets('displays loading indicator initially', (tester) async {
-    when(() => mockBloc.state).thenReturn(ShakeTorchState.initial());
+    when(() => mockBloc.state).thenReturn(ShakeTorchState.initial().copyWith(isLoading: true));
     await tester.pumpWidget(createWidgetUnderTest());
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
@@ -40,6 +40,6 @@ void main() {
     
     expect(find.text('Shake Detection Active'), findsOneWidget);
     expect(find.byType(SwitchListTile), findsOneWidget);
-    expect(find.text('High'), findsOneWidget); // Sensitivity button
+    expect(find.text('High'), findsOneWidget);
   });
 }
